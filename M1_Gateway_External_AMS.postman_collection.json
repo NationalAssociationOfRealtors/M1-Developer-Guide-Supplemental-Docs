@@ -1,0 +1,2717 @@
+{
+	"info": {
+		"name": "M1 Gateway \u2014 External (AMS)",
+		"description": "# M1 Gateway \u2014 External AMS Reference Collection\n\nThis collection documents every `/ext/` endpoint available to AMS (Association Management System) partners through the M1 Gateway API.\n\n## Authentication\n\nAll requests require **HTTP Basic Authentication**. Set the `authBasicExternal` collection variable to `Basic <your-Base64-encoded-credentials>` before sending any request.\n\nCredentials are environment-specific \u2014 test credentials must not be used against production, and vice versa. NAR will supply your credentials.\n\n## PATCH Pattern\n\nAll PATCH endpoints use a **test/replace** JSON Patch pattern:\n\n1. **GET** the current record first.\n2. Build an `Updates` array of `test` + `replace` pairs \u2014 the `test` value must match the current database value exactly.\n3. Preserve `null` vs. empty string (`\"\"`) \u2014 they are **not interchangeable**.\n\n## Response Codes\n\n| Code | Meaning |\n|------|---------|\n| 200 | Success \u2014 data returned or operation completed |\n| 400 | Bad request \u2014 missing or invalid fields (check `FieldValidationErrors` in body) |\n| 401 | Not authorized for this service |\n| 403 | Authorized but not permitted for this specific record (e.g., association permission) |\n| 404 | Record not found |\n| 500 | Server error |\n\n## Mock Data\n\nAll request bodies contain **obviously fake sample data** (e.g., MemberId `123456789`). Replace these values with your actual data before sending.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "noauth"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://m1gateway.realtor"
+		},
+		{
+			"key": "authBasicExternal",
+			"value": "Basic YOUR_BASE64_CREDENTIALS_HERE"
+		}
+	],
+	"item": [
+		{
+			"name": "Member",
+			"item": [
+				{
+					"name": "GET Member",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns the core member record for the given `MemberId`.\n\nThe response includes primary fields like name, status, type, association, and office IDs \u2014 but **not** sub-records (addresses, phones, emails, etc.). Use **GET Member Full** to retrieve everything in one call.\n\n**Response:** `200` with member object, `404` if not found, `403` if not authorized for this member's association."
+					}
+				},
+				{
+					"name": "GET Member Full",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/Full/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"Full",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns the complete member record with all sub-records included: addresses, phones, emails, certifications, COE, demographics, designations, dues payments, education, MLS affiliations, and more.\n\nUse this when you need the full picture. For individual sub-record types, use the specific entity endpoints instead.\n\n**Response:** `200` with full member object, `404` if not found."
+					}
+				},
+				{
+					"name": "GET Member Prime",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/Prime/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"Prime",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns the prime (master) record for the given `MemberId`. The prime record reflects the authoritative state of the member across all associations.\n\n**Response:** `200` with member object, `404` if not found."
+					}
+				},
+				{
+					"name": "GET Check Duplicate Member",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/CheckDuplicateMember/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"CheckDuplicateMember",
+								"{{memberId}}"
+							]
+						},
+						"description": "Checks whether the given `MemberId` already exists in the system. Use this before creating a new member to avoid duplicates.\n\n**Response:** `200` with duplicate-check result."
+					}
+				},
+				{
+					"name": "POST Member Full (Create)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456780,\n  \"FirstName\": \"John\",\n  \"LastName\": \"Doe\",\n  \"MiddleName\": null,\n  \"JoinedDate\": \"2025-01-15\",\n  \"MemberStatusCode\": \"A\",\n  \"MemberTypeCode\": \"R\",\n  \"PrimaryLocalAssociationId\": 1234,\n  \"PrimaryStateAssociationId\": 5678,\n  \"PrimaryOfficeId\": 987654321,\n  \"PreferredMailTypeCode\": \"H\",\n  \"PreferredPublicationTypeCode\": \"H\",\n  \"BusinessEmailAddress\": \"john.doe@example.com\",\n  \"HomeAddressCity\": \"Anytown\",\n  \"HomeAddressLine1\": \"100 Test Street\",\n  \"HomeAddressState\": \"NY\",\n  \"HomeAddressZip\": \"10001\",\n  \"PreferredPhoneTypeCode\": \"C\",\n  \"PrimaryFieldOfBusinessId\": 1,\n  \"PrimaryReLicenseNumber\": \"LIC0001234\",\n  \"PrimaryReLicenseState\": \"NY\",\n  \"Gender\": \"F\",\n  \"BirthDate\": \"1985-06-15\",\n  \"CellPhoneNumber\": \"5551234567\",\n  \"HomePhoneNumber\": \"5559876543\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/Full/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"Full",
+								"{{memberId}}"
+							]
+						},
+						"description": "Creates a new member record with core data and optionally related sub-records.\n\nThe `MemberId` must begin with the local association's ID prefix. Required fields vary by `MemberTypeCode` \u2014 REALTOR\u00ae members (`R`, `RA`) require additional fields such as `BusinessEmailAddress` and home address.\n\n**Response:** `200` on success, `400` if required fields are missing or validation fails (check `FieldValidationErrors`)."
+					}
+				},
+				{
+					"name": "PATCH Member",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/NickName\",\n      \"value\": null\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/NickName\",\n      \"value\": \"Johnny\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member"
+							]
+						},
+						"description": "Updates fields on the core member record using the test/replace JSON Patch pattern.\n\n**Important:** Always `GET` the current record first and use the current value in the `test` operation. Preserve `null` vs. empty string exactly \u2014 they are not interchangeable.\n\nThe `Updates` array contains pairs of `test` and `replace` operations for each field you want to change.\n\n**Response:** `200` on success, `400` if test values don't match or fields are invalid."
+					}
+				},
+				{
+					"name": "PATCH Member Reinstate",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"MemberUpdates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/MemberStatusCode\",\n      \"value\": \"I\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/MemberStatusCode\",\n      \"value\": \"A\"\n    },\n    {\n      \"op\": \"test\",\n      \"path\": \"/MemberStatusDate\",\n      \"value\": \"2024-01-01\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/MemberStatusDate\",\n      \"value\": \"2025-06-01\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/Reinstate",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"Reinstate"
+							]
+						},
+						"description": "Reinstates an inactive or terminated member by changing their status from `I`/`T`/`S` to `A` or `P`.\n\n**Key difference:** This endpoint uses `MemberUpdates` as the array field name (not `Updates` like other PATCH endpoints). Cannot be used on already-active members.\n\n**Response:** `200` on success, `400` if the member is already active or validation fails."
+					}
+				},
+				{
+					"name": "POST Member Transfer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"NewAssociationId\": 9999,\n  \"NewOfficeId\": 999900100,\n  \"TransferDate\": \"2025-06-01\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/Transfer/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"Transfer",
+								"{{memberId}}"
+							]
+						},
+						"description": "Transfers a member to a new association and/or office. The member's primary affiliation is updated to the target association and office.\n\n**Response:** `200` on success, `400` if validation fails."
+					}
+				},
+				{
+					"name": "POST Convert Member (IA)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"ConvertToMemberTypeCode\": \"R\",\n  \"ConvertDate\": \"2025-06-01\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/ConvertIA/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"ConvertIA",
+								"{{memberId}}"
+							]
+						},
+						"description": "Converts an Institute Affiliate (IA) member to a different member type (`R`, `RA`, or `I`).\n\nThis is used when an IA member upgrades to REALTOR\u00ae status or another type.\n\n**Response:** `200` on success, `400` if the member is not currently an IA or validation fails."
+					}
+				},
+				{
+					"name": "POST Check Duplicate Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"EmailAddress\": \"john.doe@example.com\",\n  \"MemberId\": 123456789\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/CheckDuplicateEmail",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"CheckDuplicateEmail"
+							]
+						},
+						"description": "Checks whether a given email address is already in use by another member in the system.\n\nUse this before adding or updating an email to avoid duplicate email conflicts.\n\n**Response:** `200` with duplicate-check result."
+					}
+				},
+				{
+					"name": "POST Validate RE License",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"LicenseNumber\": \"LIC0005678\",\n  \"LicenseState\": \"NY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/ValidateReLicense",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"ValidateReLicense"
+							]
+						},
+						"description": "Validates whether the given real estate license number is valid for the specified state.\n\n**Response:** `200` with validation result."
+					}
+				},
+				{
+					"name": "POST Member Search",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Member/Search",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Member",
+								"Search"
+							]
+						},
+						"description": "Searches for members by criteria. At least one search field is required.\n\n**Constraints:** Name fields (`FirstName`, `LastName`) cannot be the only search criteria \u2014 they must be combined with another field. `LicenseState` requires `LicenseNumber` to be provided as well.\n\n**Response:** `200` with array of matching member summaries."
+					}
+				}
+			],
+			"description": "Core member record operations \u2014 retrieve, create, update, reinstate, transfer, and convert members. Also includes duplicate-check, email-uniqueness, and license-validation utility endpoints.\n\nA member is identified by their numeric `MemberId`. The **Full** variant returns all sub-records (addresses, phones, emails, certifications, etc.) in a single call."
+		},
+		{
+			"name": "Member Address",
+			"item": [
+				{
+					"name": "GET Member Addresses",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberAddress/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberAddress",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all address records for the given `MemberId`.\n\nEach address has an `AddressTypeCode` \u2014 **H** (Home) or **M** (Mailing) \u2014 along with street, city, state, and zip fields.\n\n**Response:** `200` with array of address objects."
+					}
+				},
+				{
+					"name": "POST Member Address",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"AddressLine1\": \"100 Test Street\",\n  \"AddressLine2\": \"Apt 1\",\n  \"AddressCity\": \"Anytown\",\n  \"AddressState\": \"NY\",\n  \"AddressZip\": \"10001\",\n  \"AddressZip6\": null,\n  \"AddressTypeCode\": \"M\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberAddress",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberAddress"
+							]
+						},
+						"description": "Creates a new address record for a member.\n\n`AddressTypeCode` is required: **H** (Home) or **M** (Mailing). A member can have one address per type.\n\n**Response:** `200` on success, `400` if required fields are missing or address type already exists."
+					}
+				},
+				{
+					"name": "PATCH Member Address",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"AddressTypeCode\": \"H\",\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/Address1\",\n      \"value\": \"100 Test Street\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/Address1\",\n      \"value\": \"200 Mock Avenue\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberAddress",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberAddress"
+							]
+						},
+						"description": "Updates a member's address using test/replace patch pairs.\n\n**Identifiers:** `MemberId` + `AddressTypeCode` (these identify which address to update).\n**Patchable fields:** `Address1`, `Address2`, `CityName`, `StateCode`, `ZipCode`, `CountryCode`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				}
+			],
+			"description": "Manage addresses for a member. Each address is keyed by `MemberId` + `AddressTypeCode`.\n\nAddress type codes: **H** (Home), **M** (Mailing)."
+		},
+		{
+			"name": "Member Certification",
+			"item": [
+				{
+					"name": "GET Member Certifications",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberCertification/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberCertification",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all professional certification records for the given `MemberId` (e.g., CIPS, AHWD, ABR).\n\n**Response:** `200` with array of certification objects."
+					}
+				},
+				{
+					"name": "POST Member Certification",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CertificationCode\": \"CIPS\",\n  \"CourseCompleteDate\": \"2025-03-15\",\n  \"CourseNumber\": \"CIPS101\",\n  \"EnteringAssociationId\": 1234,\n  \"SponsoringEntityId\": 1234,\n  \"CourseDescription\": \"Certified International Property Specialist\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberCertification",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberCertification"
+							]
+						},
+						"description": "Creates a new certification record for a member.\n\nRequired fields include `CertificationCode`, `CourseNumber`, and `SponsoringEntityId`.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member Certification",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CertificationCode\": \"CIPS\",\n  \"CourseNumber\": \"CIPS101\",\n  \"SponsoringEntityId\": 1234,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/CourseDescription\",\n      \"value\": \"Certified International Property Specialist\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/CourseDescription\",\n      \"value\": \"CIPS \u2014 International Property Specialist\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberCertification",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberCertification"
+							]
+						},
+						"description": "Updates a certification record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `CertificationCode`, `CourseNumber`, `SponsoringEntityId`.\n**Patchable fields:** `CourseCompleteDate`, `CourseDescription`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				},
+				{
+					"name": "DELETE Member Certification",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CertificationCode\": \"CIPS\",\n  \"CourseNumber\": \"CIPS101\",\n  \"SponsoringEntityId\": 1234\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberCertification",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberCertification"
+							]
+						},
+						"description": "Deletes a certification record. The key fields (`MemberId`, `CertificationCode`, `CourseNumber`, `SponsoringEntityId`) are sent in the **request body**, not the URL.\n\n**Response:** `200` on success, `404` if record not found."
+					}
+				}
+			],
+			"description": "Manage professional certification records (e.g., CIPS, AHWD, ABR) for a member.\n\nEach record is keyed by `MemberId` + `CertificationCode` + `CourseNumber` + `SponsoringEntityId`."
+		},
+		{
+			"name": "Member COE",
+			"item": [
+				{
+					"name": "GET Member COE",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberCOE/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberCOE",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all Code of Ethics (COE) completion records for the given `MemberId`.\n\nCOE records include cycle information, completion dates, and CE hours.\n\n**Response:** `200` with array of COE objects."
+					}
+				},
+				{
+					"name": "POST Member COE",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CourseCode\": \"COEC\",\n  \"CourseCompletionDate\": \"2025-04-10\",\n  \"CycleNumber\": \"2025\",\n  \"EnteringAssociationId\": 1234,\n  \"IsNewMemberFlag\": \"N\",\n  \"YearTaken\": \"2025\",\n  \"CourseDescription\": \"Code of Ethics Continuing Education\",\n  \"SponsoringEntityId\": 1234\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberCOE",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberCOE"
+							]
+						},
+						"description": "Creates a new Code of Ethics record for a member.\n\nCourse codes: **COEC** (Continuing Education) or **COEN** (New Member orientation).\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member COE",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CourseCode\": \"COEC\",\n  \"CourseNumber\": \"COE2025001\",\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/CourseDescription\",\n      \"value\": \"Code of Ethics Continuing Education\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/CourseDescription\",\n      \"value\": \"COE CE \u2014 2025 Cycle\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberCOE",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberCOE"
+							]
+						},
+						"description": "Updates a COE record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `CourseCode`, `CourseNumber`.\n**Patchable fields:** `CourseCompletionDate`, `CourseDescription`, `CourseStartDate`, `CycleNumber`, `StateCeHours`, `YearTaken`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				},
+				{
+					"name": "DELETE Member COE",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CourseCode\": \"COEC\",\n  \"CourseNumber\": \"COE2025001\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberCOE",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberCOE"
+							]
+						},
+						"description": "Deletes a COE record. Key fields are sent in the **request body**, not the URL.\n\n**Response:** `200` on success, `404` if record not found."
+					}
+				}
+			],
+			"description": "Manage Code of Ethics completion records for a member.\n\nCourse codes: **COEC** (Continuing Ed), **COEN** (New Member). Each record is keyed by `MemberId` + `CourseCode` + `CourseNumber`."
+		},
+		{
+			"name": "Member Demographic",
+			"item": [
+				{
+					"name": "GET Member Demographics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberDemographic/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberDemographic",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all demographic data records for the given `MemberId`.\n\nDemographic records cover categories like age, gender, experience, and other profile data.\n\n**Response:** `200` with array of demographic objects."
+					}
+				},
+				{
+					"name": "POST Member Demographic",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"Category\": \"DISC\",\n  \"GroupCode\": \"DISCA001\",\n  \"RecordingDate\": \"2025-05-01\",\n  \"EnteredByAssociationId\": 1234,\n  \"Amount\": 0,\n  \"Comment\": \"Disciplinary action recorded\",\n  \"Note\": \"Resolved\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberDemographic",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberDemographic"
+							]
+						},
+						"description": "Creates a new demographic record for a member.\n\nRequired fields include `Category`, `GroupCode`, and `RecordingDate`.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member Demographic",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"Category\": \"DISC\",\n  \"GroupCode\": \"DISCA001\",\n  \"RecordingDate\": \"2025-05-01\",\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/Comment\",\n      \"value\": \"Disciplinary action recorded\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/Comment\",\n      \"value\": \"Disciplinary action \u2014 case closed\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberDemographic",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberDemographic"
+							]
+						},
+						"description": "Updates a demographic record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `Category`, `GroupCode`, `RecordingDate`.\n**Patchable fields:** `Amount`, `Comment`, `Note`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				},
+				{
+					"name": "DELETE Member Demographic",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"Category\": \"DISC\",\n  \"GroupCode\": \"DISCA001\",\n  \"RecordingDate\": \"2025-05-01\",\n  \"EnteredByAssociationId\": 1234\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberDemographic",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberDemographic"
+							]
+						},
+						"description": "Deletes a demographic record. Key fields are sent in the **request body**, not the URL.\n\n**Response:** `200` on success, `404` if record not found."
+					}
+				}
+			],
+			"description": "Manage demographic data records (age, gender, experience, etc.) for a member.\n\nEach record is keyed by `MemberId` + `Category` + `GroupCode` + `RecordingDate`."
+		},
+		{
+			"name": "Member Designation",
+			"item": [
+				{
+					"name": "GET Member Designations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberDesignation/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberDesignation",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all professional designation records for the given `MemberId` (e.g., CRS, GRI, SRES).\n\n**Response:** `200` with array of designation objects."
+					}
+				},
+				{
+					"name": "POST Member Designation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"DesignationCode\": \"CRS\",\n  \"DesignationStatusCode\": \"Y\",\n  \"DesignationStatusDate\": \"2025-02-01\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberDesignation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberDesignation"
+							]
+						},
+						"description": "Creates a new designation record for a member.\n\n`DesignationStatusCode`: **Y** (Active) or **N** (Inactive).\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member Designation",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"DesignationCode\": \"CRS\",\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/DesignationStatusCode\",\n      \"value\": \"Y\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/DesignationStatusCode\",\n      \"value\": \"N\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberDesignation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberDesignation"
+							]
+						},
+						"description": "Updates a designation record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `DesignationCode`.\n**Patchable fields:** `DesignationStatusCode`, `DesignationStatusDate`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				}
+			],
+			"description": "Manage professional designation records (e.g., CRS, GRI, SRES) for a member.\n\nStatus codes: **Y** (Active), **N** (Inactive). Keyed by `MemberId` + `DesignationCode`."
+		},
+		{
+			"name": "Member Dues Payment",
+			"item": [
+				{
+					"name": "GET Member Dues Payments",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberDuesPayment/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberDuesPayment",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all dues payment records for the given `MemberId`.\n\n**Response:** `200` with array of dues payment objects."
+					}
+				},
+				{
+					"name": "POST Member Dues Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"BillingAssociationId\": 1234,\n  \"BillingYear\": 2025,\n  \"DuesPaidDate\": \"2025-01-15\",\n  \"IncurringMemberId\": 123456789,\n  \"OfficeId\": 987654321,\n  \"PaymentAmount\": 150.00,\n  \"PaymentTypeCode\": \"N\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberDuesPayment",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberDuesPayment"
+							]
+						},
+						"description": "Records a new dues payment for a member. Dues payments are **write-only** \u2014 there is no PATCH or DELETE.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				}
+			],
+			"description": "Record dues payments for a member. Payments are write-only \u2014 there is no PATCH or DELETE."
+		},
+		{
+			"name": "Member Education",
+			"item": [
+				{
+					"name": "GET Member Education",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEducation/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEducation",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all continuing education course completion records for the given `MemberId`.\n\n**Response:** `200` with array of education objects."
+					}
+				},
+				{
+					"name": "POST Member Education",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CourseCode\": \"GRI\",\n  \"CourseNumber\": \"GRI200\",\n  \"EnteredByAssociationId\": 1234,\n  \"GroupCode\": \"GRI\",\n  \"CourseDescription\": \"Graduate REALTOR Institute \u2014 Module 2\",\n  \"CourseCompleteDate\": \"2025-03-20\",\n  \"StateCeHours\": 15,\n  \"SponsoringEntityId\": 1234\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEducation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEducation"
+							]
+						},
+						"description": "Creates a new education (course completion) record for a member.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member Education",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CourseCode\": \"GRI\",\n  \"CourseNumber\": \"GRI200\",\n  \"EnteredByAssociationId\": 1234,\n  \"GroupCode\": \"GRI\",\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/CourseDescription\",\n      \"value\": \"Graduate REALTOR Institute \u2014 Module 2\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/CourseDescription\",\n      \"value\": \"GRI Module 2 \u2014 Completed\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEducation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEducation"
+							]
+						},
+						"description": "Updates an education record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `CourseCode`, `CourseNumber`, `EnteredByAssociationId`, `GroupCode`.\n**Patchable fields:** vary by course type.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				},
+				{
+					"name": "DELETE Member Education",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CourseCode\": \"GRI\",\n  \"CourseNumber\": \"GRI200\",\n  \"EnteredByAssociationId\": 1234,\n  \"GroupCode\": \"GRI\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEducation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEducation"
+							]
+						},
+						"description": "Deletes an education record. Key fields are sent in the **request body**, not the URL.\n\n**Response:** `200` on success, `404` if record not found."
+					}
+				}
+			],
+			"description": "Manage continuing education course completion records for a member.\n\nEach record is keyed by `MemberId` + `CourseCode` + `CourseNumber` + `EnteredByAssociationId` + `GroupCode`."
+		},
+		{
+			"name": "Member Education Level",
+			"item": [
+				{
+					"name": "GET Member Education Levels",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEducationLevel/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEducationLevel",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all education level (degree attainment) records for the given `MemberId`.\n\n**Response:** `200` with array of education level objects."
+					}
+				},
+				{
+					"name": "POST Member Education Level",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"EducationLevelCode\": \"BACH\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEducationLevel",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEducationLevel"
+							]
+						},
+						"description": "Creates a new education level record for a member.\n\nThere is no PATCH for education levels \u2014 to update, delete the existing record and create a new one.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "DELETE Member Education Level",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"EducationLevelCode\": \"BACH\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEducationLevel",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEducationLevel"
+							]
+						},
+						"description": "Deletes an education level record. Key fields are sent in the **request body**, not the URL.\n\n**Response:** `200` on success, `404` if record not found."
+					}
+				}
+			],
+			"description": "Manage education level records (degree attainment) for a member.\n\nThere is no PATCH \u2014 update by deleting and re-creating."
+		},
+		{
+			"name": "Member Email",
+			"item": [
+				{
+					"name": "GET Member Emails",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEmail/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEmail",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all email address records for the given `MemberId`.\n\nEach email has an `EmailTypeCode` and metadata like `IsActiveFlag` and `VerifiedFlag`.\n\n**Response:** `200` with array of email objects."
+					}
+				},
+				{
+					"name": "POST Member Email",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"EmailAddress\": \"john.doe@example.com\",\n  \"EmailTypeCode\": \"B\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEmail",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEmail"
+							]
+						},
+						"description": "Creates a new email record for a member.\n\n`EmailTypeCode`: **B** (Business), **P** (Personal), **T** (Team), **S** (Shared). A member can have one email per type.\n\n**Response:** `200` on success, `400` if required fields are missing or email type already exists."
+					}
+				},
+				{
+					"name": "PATCH Member Email",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"EmailTypeCode\": \"B\",\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/EmailAddress\",\n      \"value\": \"john.doe@example.com\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/EmailAddress\",\n      \"value\": \"john.doe@updated-example.com\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberEmail",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberEmail"
+							]
+						},
+						"description": "Updates an email record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `EmailTypeCode`.\n**Patchable fields:** `EmailAddress`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				}
+			],
+			"description": "Manage email address records for a member. Each email is keyed by `MemberId` + `EmailTypeCode`.\n\nEmail type codes: **B** (Business), **P** (Personal), **T** (Team), **S** (Shared)."
+		},
+		{
+			"name": "Member Fair Housing",
+			"item": [
+				{
+					"name": "GET Member Fair Housing",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberFairHousing/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberFairHousing",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all fair housing training completion records for the given `MemberId`.\n\n**Response:** `200` with array of fair housing objects."
+					}
+				},
+				{
+					"name": "POST Member Fair Housing",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CourseCode\": \"FAIRH\",\n  \"CourseCompletionDate\": \"2025-02-28\",\n  \"CycleNumber\": \"2025\",\n  \"EnteringAssociationId\": 1234,\n  \"CourseDescription\": \"Fair Housing Training \u2014 Annual\",\n  \"SponsoringEntityId\": 1234\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberFairHousing",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberFairHousing"
+							]
+						},
+						"description": "Creates a new fair housing training record.\n\nCourse codes: **FAIRH**, **FHVN**, **BOVR**, or **HWD**.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member Fair Housing",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CourseCode\": \"FAIRH\",\n  \"CycleNumber\": \"2025\",\n  \"EnteringAssociationId\": 1234,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/CourseDescription\",\n      \"value\": \"Fair Housing Training \u2014 Annual\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/CourseDescription\",\n      \"value\": \"Fair Housing \u2014 Completed 2025\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberFairHousing",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberFairHousing"
+							]
+						},
+						"description": "Updates a fair housing record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `CourseCode`, `CycleNumber`, `EnteringAssociationId`.\n**Patchable fields:** `CourseCompletionDate`, `CourseDescription`, `StateCeHours`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				},
+				{
+					"name": "DELETE Member Fair Housing",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"CourseCode\": \"FAIRH\",\n  \"CycleNumber\": \"2025\",\n  \"EnteringAssociationId\": 1234\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberFairHousing",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberFairHousing"
+							]
+						},
+						"description": "Deletes a fair housing record. Key fields are sent in the **request body**, not the URL.\n\n**Response:** `200` on success, `404` if record not found."
+					}
+				}
+			],
+			"description": "Manage fair housing training completion records for a member.\n\nCourse codes: **FAIRH**, **FHVN**, **BOVR**, **HWD**. Keyed by `MemberId` + `CourseCode` + `CycleNumber` + `EnteringAssociationId`."
+		},
+		{
+			"name": "Member Field of Business",
+			"item": [
+				{
+					"name": "GET Member Fields of Business",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberFieldOfBusiness/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberFieldOfBusiness",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all field of business records for the given `MemberId` (e.g., Residential, Commercial, Land).\n\n**Response:** `200` with array of field of business objects."
+					}
+				},
+				{
+					"name": "POST Member Field of Business",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"FieldOfBusinessCode\": \"RES\",\n  \"FieldOrder\": 1,\n  \"RelationshipTypeCode\": \"S\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberFieldOfBusiness",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberFieldOfBusiness"
+							]
+						},
+						"description": "Creates a new field of business record.\n\n`FieldOrder`: **0** (Primary) through **3**. `RelationshipTypeCode`: **P** (Primary), **S** (Secondary).\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member Field of Business",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"FieldOrder\": 1,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/FieldOfBusinessCode\",\n      \"value\": \"RES\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/FieldOfBusinessCode\",\n      \"value\": \"COM\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberFieldOfBusiness",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberFieldOfBusiness"
+							]
+						},
+						"description": "Updates a field of business record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `FieldOrder`.\n**Patchable fields:** `FieldOfBusinessCode`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				}
+			],
+			"description": "Manage a member's field of business entries (e.g., Residential, Commercial).\n\n`FieldOrder` ranges from **0** (Primary) through **3**. Keyed by `MemberId` + `FieldOrder`."
+		},
+		{
+			"name": "Member ISC Affiliation",
+			"item": [
+				{
+					"name": "GET Member ISC Affiliations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberIscAffiliation/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberIscAffiliation",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all Institute/Society/Council (ISC) affiliation records for the given `MemberId`.\n\nISC affiliations represent membership in NAR-affiliated institutes, societies, and councils.\n\n**Response:** `200` with array of ISC affiliation objects."
+					}
+				},
+				{
+					"name": "POST Member ISC Affiliation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"AssociationId\": 1234,\n  \"MemberStatusCode\": \"A\",\n  \"MemberStatusDate\": \"2025-01-01\",\n  \"MemberTypeCode\": \"R\",\n  \"OfficeId\": 987654321\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberIscAffiliation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberIscAffiliation"
+							]
+						},
+						"description": "Creates a new ISC affiliation record for a member.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member ISC Affiliation",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"AssociationId\": 1234,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/MemberStatusCode\",\n      \"value\": \"A\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/MemberStatusCode\",\n      \"value\": \"I\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberIscAffiliation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberIscAffiliation"
+							]
+						},
+						"description": "Updates an ISC affiliation record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `AssociationId`.\n**Patchable fields:** `MemberStatusCode`, `MemberStatusDate`, `MemberTypeCode`, `OfficeId`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				}
+			],
+			"description": "Manage Institute/Society/Council (ISC) affiliation records for a member.\n\nKeyed by `MemberId` + `AssociationId`."
+		},
+		{
+			"name": "Member Language",
+			"item": [
+				{
+					"name": "GET Member Languages",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberLanguage/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberLanguage",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all language records for the given `MemberId`.\n\n**Response:** `200` with array of language objects."
+					}
+				},
+				{
+					"name": "POST Member Language",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"LanguageCode\": \"SPA\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberLanguage",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberLanguage"
+							]
+						},
+						"description": "Creates a new language record for a member.\n\nThere is no PATCH for languages \u2014 to update, delete the existing record and create a new one.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "DELETE Member Language",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"LanguageCode\": \"SPA\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberLanguage",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberLanguage"
+							]
+						},
+						"description": "Deletes a language record. Key fields are sent in the **request body**, not the URL.\n\n**Response:** `200` on success, `404` if record not found."
+					}
+				}
+			],
+			"description": "Manage language records for a member. There is no PATCH \u2014 update by deleting and re-creating."
+		},
+		{
+			"name": "Member Military Service",
+			"item": [
+				{
+					"name": "GET Member Military Service",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberMilitaryService/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberMilitaryService",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all military service records for the given `MemberId`.\n\n**Response:** `200` with array of military service objects."
+					}
+				},
+				{
+					"name": "POST Member Military Service",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"MilitaryServiceCode\": \"ARMY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberMilitaryService",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberMilitaryService"
+							]
+						},
+						"description": "Creates a new military service record for a member.\n\nThere is no PATCH for military service records \u2014 to update, delete and re-create.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "DELETE Member Military Service",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"MilitaryServiceCode\": \"ARMY\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberMilitaryService",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberMilitaryService"
+							]
+						},
+						"description": "Deletes a military service record. Key fields are sent in the **request body**, not the URL.\n\n**Response:** `200` on success, `404` if record not found."
+					}
+				}
+			],
+			"description": "Manage military service records for a member. There is no PATCH \u2014 update by deleting and re-creating."
+		},
+		{
+			"name": "Member MLS",
+			"item": [
+				{
+					"name": "GET Member MLS",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberMLS/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberMLS",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all MLS (Multiple Listing Service) affiliation records for the given `MemberId`.\n\n**Response:** `200` with array of MLS affiliation objects."
+					}
+				},
+				{
+					"name": "POST Member MLS",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"AssociationId\": 1234,\n  \"MemberStatusCode\": \"A\",\n  \"MemberStatusDate\": \"2025-01-01\",\n  \"MemberTypeCode\": \"R\",\n  \"OfficeId\": 987654321\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberMLS",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberMLS"
+							]
+						},
+						"description": "Creates a new MLS affiliation record for a member.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member MLS",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"AssociationId\": 1234,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/MemberStatusCode\",\n      \"value\": \"A\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/MemberStatusCode\",\n      \"value\": \"I\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberMLS",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberMLS"
+							]
+						},
+						"description": "Updates an MLS affiliation record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `AssociationId`.\n**Patchable fields:** `MemberStatusCode`, `MemberStatusDate`, `MemberTypeCode`, `OfficeId`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				}
+			],
+			"description": "Manage MLS (Multiple Listing Service) affiliation records for a member.\n\nKeyed by `MemberId` + `AssociationId`."
+		},
+		{
+			"name": "Member Phone",
+			"item": [
+				{
+					"name": "GET Member Phones",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberPhone/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberPhone",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all phone number records for the given `MemberId`.\n\n**Response:** `200` with array of phone objects."
+					}
+				},
+				{
+					"name": "POST Member Phone",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"PhoneNumber\": \"5551112222\",\n  \"PhoneType\": \"C\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberPhone",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberPhone"
+							]
+						},
+						"description": "Creates a new phone record for a member.\n\n`PhoneType`: **H** (Home), **DD** (Direct Dial), **C** (Cell), **PF** (Personal Fax). The **O** (Office) type is read-only and cannot be created directly.\n\n**Response:** `200` on success, `400` if required fields are missing or phone type already exists."
+					}
+				},
+				{
+					"name": "PATCH Member Phone",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"PhoneType\": \"C\",\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/PhoneNumber\",\n      \"value\": \"5551112222\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/PhoneNumber\",\n      \"value\": \"5553334444\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberPhone",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberPhone"
+							]
+						},
+						"description": "Updates a phone record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `PhoneType`.\n**Patchable fields:** `PhoneNumber`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				}
+			],
+			"description": "Manage phone number records for a member. Each phone is keyed by `MemberId` + `PhoneType`.\n\nPhone types: **H** (Home), **DD** (Direct Dial), **C** (Cell), **PF** (Personal Fax). **O** (Office) is read-only."
+		},
+		{
+			"name": "Member Secondary",
+			"item": [
+				{
+					"name": "GET Member Secondary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberSecondary/MemberId/{{memberId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberSecondary",
+								"MemberId",
+								"{{memberId}}"
+							]
+						},
+						"description": "Returns all secondary association membership records for the given `MemberId`.\n\nA secondary record represents an additional association/office affiliation beyond the member's primary membership.\n\n**Response:** `200` with array of secondary membership objects."
+					}
+				},
+				{
+					"name": "POST Member Secondary",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"AssociationId\": 9999,\n  \"LocalJoinDate\": \"2025-01-01\",\n  \"MemberStatusCode\": \"A\",\n  \"MemberStatusDate\": \"2025-01-01\",\n  \"MemberTypeCode\": \"R\",\n  \"OfficeId\": 999900100\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberSecondary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberSecondary"
+							]
+						},
+						"description": "Creates a new secondary association membership record for a member.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Member Secondary",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"AssociationId\": 9999,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/MemberStatusCode\",\n      \"value\": \"A\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/MemberStatusCode\",\n      \"value\": \"I\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberSecondary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberSecondary"
+							]
+						},
+						"description": "Updates a secondary membership record using test/replace patch pairs.\n\n**Identifiers:** `MemberId`, `AssociationId`.\n**Patchable fields:** `LocalJoinDate`, `MemberStatusCode`, `MemberStatusDate`, `MemberSubClass`, `MemberTypeCode`, `OfficeId`, `ReLicenseNumber`, `LicenseState`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				}
+			],
+			"description": "Manage secondary association memberships for a member. A secondary record represents an additional association/office affiliation beyond the member's primary.\n\nKeyed by `MemberId` + `AssociationId`."
+		},
+		{
+			"name": "Member Single Owned MLS",
+			"item": [
+				{
+					"name": "POST Member Single Owned MLS",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"MemberId\": 123456789,\n  \"AssociationId\": 1234,\n  \"SingleOwnedMlsStatusCode\": \"A\",\n  \"SingleOwnedMlsStatusDate\": \"2025-01-01\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/MemberSingleOwnedMLS",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"MemberSingleOwnedMLS"
+							]
+						},
+						"description": "Creates a new single-owned MLS record for a member.\n\nThis is a **POST-only** endpoint \u2014 there are no GET, PATCH, or DELETE operations for single-owned MLS records.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				}
+			],
+			"description": "Create single-owned MLS records for a member. This is a POST-only endpoint \u2014 there is no GET, PATCH, or DELETE."
+		},
+		{
+			"name": "Office",
+			"item": [
+				{
+					"name": "GET Office",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/Office/{{officeId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Office",
+								"{{officeId}}"
+							]
+						},
+						"description": "Returns the core office record for the given `OfficeId`.\n\nThe response includes office name, status, association, address, and contact information \u2014 but **not** secondary records. Use **GET Office Full** for the complete picture.\n\n**Response:** `200` with office object, `404` if not found."
+					}
+				},
+				{
+					"name": "GET Office Full",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/Office/Full/{{officeId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Office",
+								"Full",
+								"{{officeId}}"
+							]
+						},
+						"description": "Returns the full office record including all sub-records (secondary affiliations, etc.).\n\n**Response:** `200` with full office object, `404` if not found."
+					}
+				},
+				{
+					"name": "POST Office",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"AssociationId\": 1234,\n  \"OfficeName\": \"Sample Realty LLC\",\n  \"OfficeAddress1\": \"500 Test Boulevard\",\n  \"OfficeAddress2\": \"Floor 2\",\n  \"OfficeCityName\": \"Anytown\",\n  \"OfficeStateCode\": \"NY\",\n  \"OfficeZipCode\": \"10001\",\n  \"OfficePhone\": \"5550001111\",\n  \"OfficeStatusCode\": \"A\",\n  \"NmSalespersonCount\": 0\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Office",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Office"
+							]
+						},
+						"description": "Creates a new office record.\n\n`OfficeStatusCode` must be **A** (Active) when creating a new office.\n\n**Response:** `200` on success, `400` if required fields are missing or validation fails."
+					}
+				},
+				{
+					"name": "PATCH Office",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"OfficeId\": 987654321,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/OfficeName\",\n      \"value\": \"Test Realty Group\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/OfficeName\",\n      \"value\": \"Test Realty Group \u2014 Updated Name\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Office",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Office"
+							]
+						},
+						"description": "Updates an office record using test/replace patch pairs.\n\n**Identifier:** `OfficeId`.\n\nAlways GET the current record first and use current values in the `test` operations.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				},
+				{
+					"name": "POST Office Transfer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"NewAssociationId\": 9999,\n  \"TransferDate\": \"2025-06-01\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Office/Transfer/{{officeId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Office",
+								"Transfer",
+								"{{officeId}}"
+							]
+						},
+						"description": "Transfers an office to a new association.\n\n**Response:** `200` on success, `400` if validation fails."
+					}
+				},
+				{
+					"name": "POST Office Search",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"OfficeId\": 987654321\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Office/Search",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Office",
+								"Search"
+							]
+						},
+						"description": "Searches for offices by criteria.\n\n**Response:** `200` with array of matching office summaries."
+					}
+				}
+			],
+			"description": "Core office record operations \u2014 retrieve, create, update, transfer, and search offices.\n\nAn office is identified by its numeric `OfficeId`. The **Full** variant returns all sub-records in a single call."
+		},
+		{
+			"name": "Office Secondary",
+			"item": [
+				{
+					"name": "GET Office Secondary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/OfficeSecondary/OfficeId/{{officeId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"OfficeSecondary",
+								"OfficeId",
+								"{{officeId}}"
+							]
+						},
+						"description": "Returns all secondary association records for the given `OfficeId`.\n\n**Response:** `200` with array of secondary office objects."
+					}
+				},
+				{
+					"name": "POST Office Secondary",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"OfficeId\": 987654321,\n  \"AssociationId\": 9999,\n  \"NmSalespersonCount\": 0,\n  \"OfficeStatusCode\": \"A\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/OfficeSecondary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"OfficeSecondary"
+							]
+						},
+						"description": "Creates a new secondary association record for an office.\n\n**Response:** `200` on success, `400` if required fields are missing."
+					}
+				},
+				{
+					"name": "PATCH Office Secondary",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"OfficeId\": 987654321,\n  \"AssociationId\": 9999,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/NmSalespersonCount\",\n      \"value\": 0\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/NmSalespersonCount\",\n      \"value\": 5\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/OfficeSecondary",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"OfficeSecondary"
+							]
+						},
+						"description": "Updates a secondary office record using test/replace patch pairs.\n\n**Identifiers:** `OfficeId`, `AssociationId`.\n**Patchable fields:** `NmSalespersonCount`, `OfficeStatusCode`, `OfficeStatusDate`.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				}
+			],
+			"description": "Manage secondary association records for an office.\n\nKeyed by `OfficeId` + `AssociationId`."
+		},
+		{
+			"name": "Association",
+			"item": [
+				{
+					"name": "GET Association",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/Association/{{associationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Association",
+								"{{associationId}}"
+							]
+						},
+						"description": "Returns the association record for the given `AssociationId`.\n\nThe response includes name, type, status, contact information, mailing/street addresses, and leadership details.\n\n**Response:** `200` with association object, `404` if not found. Access is governed by existing Association Data Permission rules."
+					}
+				},
+				{
+					"name": "PATCH Association",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"AssociationId\": 1234,\n  \"Updates\": [\n    {\n      \"op\": \"test\",\n      \"path\": \"/AssociationName\",\n      \"value\": \"TEST ASSOCIATION OF REALTORS\u00ae\"\n    },\n    {\n      \"op\": \"replace\",\n      \"path\": \"/AssociationName\",\n      \"value\": \"Greater Anytown Association of REALTORS\u00ae\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Association",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Association"
+							]
+						},
+						"description": "Updates an association record using test/replace patch pairs.\n\n**Identifier:** `AssociationId`.\n\nAlways GET the current record first and use current values in the `test` operations.\n\n**Response:** `200` on success, `400` if test values don't match."
+					}
+				},
+				{
+					"name": "POST Association Search",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"AssociationState\": \"NY\",\n  \"AssociationTypeCode\": \"L\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/Association/Search",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"Association",
+								"Search"
+							]
+						},
+						"description": "Searches for associations by criteria. At least one search field is required.\n\n`AssociationTypeCode`: **L** (Local), **S** (State), **M** (MLS), **N** (National), **A** (All).\n\n**Response:** `200` with array of matching association summaries."
+					}
+				}
+			],
+			"description": "Retrieve and update association records, and search for associations.\n\nAn association is identified by its numeric `AssociationId`. Type codes: **L** (Local), **S** (State), **M** (MLS), **N** (National)."
+		},
+		{
+			"name": "Data Extract",
+			"item": [
+				{
+					"name": "GET Data Extract Requests",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/DataExtractRequest/Requester",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"DataExtractRequest",
+								"Requester"
+							]
+						},
+						"description": "Returns all data extract requests submitted by the authenticated user.\n\nUse this to check the status of previously submitted requests and retrieve File IDs for download.\n\n**Response:** `200` with array of extract request objects."
+					}
+				},
+				{
+					"name": "GET Data Extract Schedule",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/DataExtractSchedule/AssociationId/{{associationId}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"DataExtractSchedule",
+								"AssociationId",
+								"{{associationId}}"
+							]
+						},
+						"description": "Returns the data extract schedule for the given `AssociationId`.\n\n**Response:** `200` with schedule details, `404` if no schedule exists."
+					}
+				},
+				{
+					"name": "GET Data Extract File Location",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/DataExtractRequest/FileLocation",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"DataExtractRequest",
+								"FileLocation"
+							]
+						},
+						"description": "Returns a temporary download URL for completed extract files.\n\nThe URL is valid for approximately **8 hours** after generation. After expiry, call this endpoint again for a new URL.\n\n**Response:** `200` with download URL."
+					}
+				},
+				{
+					"name": "GET Data Extract Download File",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/DataExtractRequest/DownloadFile/12345",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"DataExtractRequest",
+								"DownloadFile",
+								"12345"
+							]
+						},
+						"description": "Downloads a completed extract file by its numeric File ID (returned in the POST response).\n\n**Response:** `200` with file content (multipart)."
+					}
+				},
+				{
+					"name": "POST Data Extract Request",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"AssociationId\": 1234,\n  \"Delimiter\": \",\",\n  \"ExtractType\": \"Membership\",\n  \"FileList\": \"Member,Office\",\n  \"IncludeColumnHeaders\": \"Y\",\n  \"MemberStatusList\": \"A,I\",\n  \"MemberTypeList\": \"R,RA\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/DataExtractRequest",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"DataExtractRequest"
+							]
+						},
+						"description": "Creates a one-time data extract request.\n\n**Required fields:**\n- `ExtractType`: **Membership** or **AssociationDirectory**\n- `FileList`: Comma-separated list of files to include (e.g., `Member,Office,MemberSecondary`)\n- `Delimiter`: Field separator character (e.g., `,` or `\\t` for tab)\n- `IncludeColumnHeaders`: **Y** or **N**\n- `AssociationId`: Required for Membership extracts; omit for AssociationDirectory\n\n**Membership FileList options:** Member, MemberSecondary, Office, OfficeSecondary, MemberExpanded, OfficeExpanded, Certifications, COE, Demographic, DuesPayments, Education, EducationLevel, MilitaryService, Languages, FairHousing, SingleOwnedMLS.\n\n**Response:** `200` with File IDs for download, `400` if validation fails, `403` if not POE for the specified association."
+					}
+				},
+				{
+					"name": "POST Data Extract Schedule",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"AssociationId\": 1234,\n  \"Delimiter\": \",\",\n  \"ExtractType\": \"Membership\",\n  \"FileList\": \"Member,Office\",\n  \"IncludeColumnHeaders\": \"Y\",\n  \"MemberStatusList\": \"A,I\",\n  \"MemberTypeList\": \"R,RA\",\n  \"ScheduleTypeCode\": \"W\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/DataExtractSchedule",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"DataExtractSchedule"
+							]
+						},
+						"description": "Creates a recurring data extract schedule.\n\n`ScheduleTypeCode`: **W** (Weekly), **B** (Bi-Monthly), **M** (Monthly).\n\nOnce created, extracts are generated automatically on schedule and can be downloaded via the File Location or Download File endpoints.\n\n**Response:** `200` on success, `400` if validation fails."
+					}
+				},
+				{
+					"name": "PUT Data Extract Schedule",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"Id\": 12345,\n  \"AssociationId\": 1234,\n  \"Delimiter\": \",\",\n  \"ExtractType\": \"Membership\",\n  \"FileList\": \"Member,MemberSecondary,Office\",\n  \"IncludeColumnHeaders\": \"Y\",\n  \"MemberStatusList\": \"A\",\n  \"MemberTypeList\": \"R,RA,I\",\n  \"ScheduleTypeCode\": \"M\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/ext/DataExtractSchedule/12345",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"DataExtractSchedule",
+								"12345"
+							]
+						},
+						"description": "Updates an existing data extract schedule.\n\nThe `Id` in the request body must match the schedule ID in the URL path.\n\n**Response:** `200` on success, `400` if validation fails, `404` if schedule not found."
+					}
+				},
+				{
+					"name": "DELETE Data Extract Schedule",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{authBasicExternal}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/ext/DataExtractSchedule/12345",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"ext",
+								"DataExtractSchedule",
+								"12345"
+							]
+						},
+						"description": "Deletes an existing data extract schedule by its numeric schedule ID.\n\n**Response:** `200` on success, `404` if schedule not found."
+					}
+				}
+			],
+			"description": "Request, schedule, and download bulk data extracts.\n\nExtract types: **Membership** (requires `AssociationId`, returns member/office files) and **AssociationDirectory** (returns the national directory).\n\nWorkflow: POST a request \u2192 poll GET Requests to check status \u2192 GET Download File to retrieve the output."
+		}
+	]
+}
