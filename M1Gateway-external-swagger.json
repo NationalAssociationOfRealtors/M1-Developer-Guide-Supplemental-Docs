@@ -303,9 +303,7 @@
             "description": "Success"
           }
         }
-      }
-    },
-    "/ext/DataExtractSchedule/{id}": {
+      },
       "delete": {
         "tags": [
           "DataExtractSchedule"
@@ -318,7 +316,7 @@
         "parameters": [
           {
             "in": "path",
-            "name": "id",
+            "name": "scheduleId",
             "required": true,
             "type": "integer",
             "format": "int32"
@@ -1666,6 +1664,12 @@
           "text/json"
         ],
         "parameters": [
+          {
+            "in": "query",
+            "name": "confirmEmailChange",
+            "type": "boolean",
+            "default": false
+          },
           {
             "in": "body",
             "name": "body",
